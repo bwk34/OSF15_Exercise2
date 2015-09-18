@@ -36,7 +36,17 @@ struct block_store {
     // add an fd for V2 for better disk stuff
 };
 
-// TODO: Comment
+// TODO: Comment(finished)
+/* 
+ * PURPOSE: This function creates a new block store device by allocate memory to it.
+ *  And will display error and terminate if there's any error happens in any parts.
+ * INPUTS: 
+ *  No input.
+ * RETURN:
+ *  If no errors during the allocation then it return a new block store device 
+ *  else return NULL
+ *
+ **/
 block_store_t *block_store_create() {
     block_store_t *bs = malloc(sizeof(block_store_t));
     if (bs) {
@@ -64,7 +74,17 @@ block_store_t *block_store_create() {
     return NULL;
 }
 
-// TODO: Comment
+// TODO: Comment(finished)
+/* 
+ * PURPOSE: This function destroy the given block store device.
+ * INPUTS: 
+ *  bs: A previousely created block store device.
+ * RETURN:
+ *  None.
+ *
+ **/
+
+
 void block_store_destroy(block_store_t *const bs) {
     if (bs) {
         bitmap_destroy(bs->fbm);
@@ -80,7 +100,16 @@ void block_store_destroy(block_store_t *const bs) {
     block_store_errno = BS_PARAM;
 }
 
-// TODO: Comment
+// TODO: Comment(finished)
+/* 
+ * PURPOSE: This function will search for a free block, and make it as in use. Finally return the block ID
+ * INPUTS: 
+ *  bs: a block store that used to search for free block
+ * RETURN:
+ *  If no errors then return block id. Else will return 0.
+ *
+ **/
+
 size_t block_store_allocate(block_store_t *const bs) {
     if (bs && bs->fbm) {
         size_t free_block = bitmap_ffz(bs->fbm);
@@ -114,7 +143,18 @@ size_t block_store_allocate(block_store_t *const bs) {
     }
 */
 
-// TODO: Comment
+// TODO: Comment(finished)
+/* 
+ * PURPOSE: This function frees the specified block with given id.
+ * INPUTS: 
+ *  bs: a block store device
+ *  block_id: an id of block that will be freed
+ * RETURN:
+ *  If no errors then return block id. Else will return 0.
+ *
+ **/
+
+
 size_t block_store_release(block_store_t *const bs, const size_t block_id) {
     if (bs && bs->fbm && BLOCKID_VALID(block_id)) {
         // we could clear the dirty bit, since the info is no longer in use but...
@@ -129,7 +169,20 @@ size_t block_store_release(block_store_t *const bs, const size_t block_id) {
     return 0;
 }
 
-// TODO: Comment
+// TODO: Comment(finished)
+/* 
+ * PURPOSE: This function read data from some specified block and offset and writes it to the designated buffer
+ * INPUTS: 
+ *  bs: a block store device
+ *  block_id: an id of block that will be read
+ *  buffer: buffer of data that will write to
+ *  nbytes: number of bytes that will be read
+ *  offset: offset of the block
+ * RETURN:
+ *  If no errors then return number of bytes that read. Else will return 0.
+ *
+ **/
+
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer, const size_t nbytes, const size_t offset) {
     if (bs && bs->fbm && bs->data_blocks && BLOCKID_VALID(block_id)
             && buffer && nbytes && (nbytes + offset <= BLOCK_SIZE)) {
@@ -146,17 +199,37 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     return 0;
 }
 
-// TODO: Implement, comment, param check
+// TODO: Implement, comment(finished), param check(finished)
 // Gotta take read in nbytes from the buffer and write it to the offset of the block
 // Pretty easy, actually
 // Gotta remember to mess with the DBM!
 // Let's allow writing to blocks not marked as in use as well, but log it like with read
+
+/* 
+ * PURPOSE: This function reads data from the specified buffer and writes it to the designated block and offset.
+ * INPUTS: 
+ *  bs: a block store device taht will be write
+ *  block_id: an id of block that will be write to
+ *  buffer: buffer of data that will be read
+ *  nbytes: number of bytes that will be write
+ *  offset: offset ot the block
+ * RETURN:
+ *  If no errors then return number of bytes write. Else will return 0.
+ *
+ **/
+
+
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer, const size_t nbytes, const size_t offset) {
+    if (bs && bs->fbm && bs->data_blocks && BLOCKID_VALID(block_id)
+            && buffer && nbytes && (nbytes + offset <= BLOCK_SIZE)) {
+
+        return nbytes;
+    }
     block_store_errno = BS_FATAL;
     return 0;
 }
 
-// TODO: Implement, comment, param check
+// TODO: Implement, comment(finished), param check(finished)
 // Gotta make a new BS object and read it from the file
 // Need to remember to get the file format right, where's the FBM??
 // Since it's just loaded from file, the DBM is easy
@@ -164,12 +237,36 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 // There should be POSIX stuff for everything file-related
 // Probably going to have a lot of resource management, better be careful
 // Lots of different errors can happen
+
+/* 
+ * PURPOSE: This function imports data from a given name file to block store device
+ * INPUTS: 
+ *  filename: name of the file that used to import
+ * RETURN:
+ *  If no errors then return pointer to the new block store device. Else will return NULL.
+ *
+ **/
+
+
 block_store_t *block_store_import(const char *const filename) {
+    if(filename != NULL){
+    return newbs;
+    }
     block_store_errno = BS_FATAL;
     return NULL;
 }
 
-// TODO: Comment
+// TODO: Comment(finished)
+/* 
+ * PURPOSE: This function exports data from a block store device to a given name file
+ * INPUTS: 
+ *  bs: block store device which data need to export
+ *  filename: name of the file that data will write to
+ * RETURN:
+ *  If no errors then return number of bytes written. Else will return 0.
+ *
+ **/
+
 size_t block_store_export(const block_store_t *const bs, const char *const filename) {
     // Thankfully, this is less of a mess than import...
     // we're going to ignore dbm, we'll treat export like it's making a new copy of the drive
@@ -194,7 +291,16 @@ size_t block_store_export(const block_store_t *const bs, const char *const filen
     return 0;
 }
 
-// TODO: Comment
+// TODO: Comment(finished)
+/* 
+ * PURPOSE: This function give an explanation for every error code
+ * INPUTS: 
+ *  bs_err the error code
+ * RETURN:
+ *  Return a string of error explanation
+ *
+ **/
+
 const char *block_store_strerror(block_store_status bs_err) {
     switch (bs_err) {
         case BS_OK:
@@ -235,10 +341,31 @@ const char *block_store_strerror(block_store_status bs_err) {
 //   but it's probably totally broken if the sync failed for whatever reason
 //   I guess a new export will fix that?
 
+/* 
+ * PURPOSE: 
+ * INPUTS: 
+ *  fd:
+ *  buffer:
+ *  count:
+ * RETURN:
+ *  
+ *
+ **/
 
 size_t utility_read_file(const int fd, uint8_t *buffer, const size_t count) {
     return 0;
 }
+
+/* 
+ * PURPOSE: 
+ * INPUTS: 
+ *  fd:
+ *  buffer:
+ *  count:
+ * RETURN:
+ *  
+ *
+ **/
 
 size_t utility_write_file(const int fd, const uint8_t *buffer, const size_t count) {
     return 0;
