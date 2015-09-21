@@ -13,7 +13,7 @@
 // Handy macro, does what it says on the tin
 #define BLOCKID_VALID(id) ((id > (FBM_SIZE - 1)) && (id < BLOCK_COUNT))
 
-// TODO: Implement, comment, param check
+// TODO: Implement, comment(finished), param check(finished)
 // It needs to read count bytes from fd into buffer
 // Probably a good idea to handle EINTR
 // Maybe do a block-based read? It's more efficient, but it's more complex
@@ -22,7 +22,7 @@
 // There should be POSIX stuff for this somewhere
 size_t utility_read_file(const int fd, uint8_t *buffer, const size_t count);
 
-// TODO: implement, comment, param check
+// TODO: implement, comment(finished), param check(finished)
 // Exactly the same as read, but we're writing count from buffer to fd
 size_t utility_write_file(const int fd, const uint8_t *buffer, const size_t count);
 
@@ -199,7 +199,7 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     return 0;
 }
 
-// TODO: Implement, comment(finished), param check(finished)
+// TODO: Implement(finished), comment(finished), param check(finished)
 // Gotta take read in nbytes from the buffer and write it to the offset of the block
 // Pretty easy, actually
 // Gotta remember to mess with the DBM!
@@ -222,7 +222,9 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer, const size_t nbytes, const size_t offset) {
     if (bs && bs->fbm && bs->data_blocks && BLOCKID_VALID(block_id)
             && buffer && nbytes && (nbytes + offset <= BLOCK_SIZE)) {
-
+        size_t total_offset = offset + (BLOCK_SIZE * (block_id - FBM_SIZE));
+        memcpy((void *)(bs->data_blocks + total_offset), buffer, nbytes);
+        block_store_errno = bitmap_test(bs->fbm, block_id) ? BS_OK : BS_FBM_REQUEST_MISMATCH;
         return nbytes;
     }
     block_store_errno = BS_FATAL;
@@ -249,8 +251,13 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 
 block_store_t *block_store_import(const char *const filename) {
-    if(filename != NULL){
-    return newbs;
+    if(filename){
+	fd = open(filename, O_RDONLY);
+	if(fd != -1)
+	{
+		block_store_t *bs = block_store_create();
+		
+	}
     }
     block_store_errno = BS_FATAL;
     return NULL;
@@ -342,31 +349,56 @@ const char *block_store_strerror(block_store_status bs_err) {
 //   I guess a new export will fix that?
 
 /* 
- * PURPOSE: 
+ * PURPOSE: Reads data from specified file and writes it to the designated buffer
  * INPUTS: 
- *  fd:
- *  buffer:
- *  count:
- * RETURN:
+ *  fd: file descriptor
+ *  buffer: pointer to the designated buffer
+ *  count: number of bytes to read
+ * RETURN: Number of bytes if successfully read from file, otherwise return 0
  *  
  *
  **/
 
 size_t utility_read_file(const int fd, uint8_t *buffer, const size_t count) {
+	if(fd && buffer && count) 
+	{
+		size_t size = read(fd, buffer, count);
+		if(size == -1)
+		{
+			return 0;
+		}
+		return size; 
+
+	}
+
+
     return 0;
 }
 
 /* 
- * PURPOSE: 
+ * PURPOSE: Reads data from the specified buffer and writes it to the designated block and offset
  * INPUTS: 
- *  fd:
- *  buffer:
- *  count:
- * RETURN:
+ *  fd: file descriptor
+ *  buffer: pointer to the designated buffer
+ *  count: number of bytes to write
+ * RETURN: Number of bytes if successfully write to file, otherwise return 0.
  *  
  *
  **/
 
 size_t utility_write_file(const int fd, const uint8_t *buffer, const size_t count) {
+	if(fd && buffer && count)
+	{
+		size_t size = write(fd, buffer, count);
+                if(size == -1)
+                {
+                        return 0;
+                }
+		return size;
+	
+	}
+
+
+
     return 0;
 }
